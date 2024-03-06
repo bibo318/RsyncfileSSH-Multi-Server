@@ -97,7 +97,7 @@ start_inotify() {
     determine_sync_dir
     if [ -d "$SYNC_DIR" ] && [ ! -z "$SYNC_DIR" ]; then
         if [ "$current_master" = "$HOSTNAME" ]; then
-            inotifywait -m -e modify,create,delete --format '%e %w%f' -q "$SYNC_DIR" | while read -r event file; do
+            inotifywait -m -r -e modify,create,delete --format '%e %w%f' -q "$SYNC_DIR" | while read -r event file; do
                 log_message "Phát hiện thay đổi trên $current_master: $file"
                 if [[ $event == *"MODIFY"* ]]; then
                     ((MODIFY_COUNT++))
@@ -116,7 +116,7 @@ start_inotify() {
             done &
             INOTIFY_PID=$!
         else
-            ssh "$current_master" "inotifywait -m -e modify,create,delete --format '%e %w%f' -q '$SYNC_DIR'" | while read -r event file; do
+            ssh "$current_master" "inotifywait -m -r -e modify,create,delete --format '%e %w%f' -q '$SYNC_DIR'" | while read -r event file; do
                 log_message "Phát hiện thay đổi trên $current_master qua SSH: $file"
                 if [[ $event == *"MODIFY"* ]]; then
                     ((MODIFY_COUNT++))
@@ -182,7 +182,7 @@ stop_inotify() {
         INOTIFY_PID=""
     fi
 
-    pkill -f 'inotifywait -m -e modify,create,delete'
+    pkill -f 'inotifywait -m -r -e modify,create,delete'
     local ssh_pids=$(pgrep -f 'ssh .* inotifywait')
     if [ ! -z "$ssh_pids" ]; then
         for pid in $ssh_pids; do
@@ -191,7 +191,7 @@ stop_inotify() {
     fi
 
     if [ "$current_master" != "$HOSTNAME" ]; then
-        ssh "$current_master" "pkill -f 'inotifywait -m -e modify,create,delete'"
+        ssh "$current_master" "pkill -f 'inotifywait -m -r -e modify,create,delete'"
     fi
 
     log_message "Đã dừng tất cả các quá trình inotifywait và các kết nối SSH liên quan trên cả máy chủ local và máy chủ nắm giữ IP VIP"

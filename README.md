@@ -1,3 +1,5 @@
+![Rsync-SSH Synchronization](ssh-sync.png)
+
 # RsyncfileSSH-Multi-Server
 Tools for synchronizing data with Rsync-SSH across multiple servers
 
